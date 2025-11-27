@@ -8,7 +8,7 @@ export default function Login() {
   const handleLogin = async () => {
     const res = await apiPost("/auth/login", { email, password });
     console.log(res);
-    alert("Login Successful!");
+    alert("Login Successful (Demo Only)");
   };
 
   return (

@@ -16,7 +16,7 @@ export default function Register() {
     });
 
     console.log(res);
-    alert("Registration Successful!");
+    alert("Registration Successful (Demo Only)");
   };
 
   return (

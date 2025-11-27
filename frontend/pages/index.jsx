@@ -3,7 +3,7 @@ export default function Index() {
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gray-100">
       <h1 className="text-4xl font-bold text-gray-900">RideGo – Cab Booking</h1>
       <p className="text-gray-600 mt-2 text-center">
-        Your reliable ride booking platform.
+        Your smooth and simple ride booking experience.
       </p>
 
       <div className="mt-6 flex gap-4">
