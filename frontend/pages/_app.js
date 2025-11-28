@@ -1,17 +1,14 @@
 import "../styles/globals.css";
+import "leaflet/dist/leaflet.css";
 import Navbar from "../components/Navbar";
 
 export default function App({ Component, pageProps }) {
   return (
-    <>
-      {/* Global Navbar */}
+    <div>
       <Navbar />
-
-      {/* Page Content */}
-      <main className="min-h-screen bg-gray-100">
+      <div className="pt-20">
         <Component {...pageProps} />
-      </main>
-    </>
+      </div>
+    </div>
   );
 }
-

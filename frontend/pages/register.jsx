@@ -15,52 +15,70 @@ export default function Register() {
       password,
     });
 
-    console.log(res);
-    alert("Registration Successful (Demo Only)");
+    alert("Registration successful (demo)");
+    window.location.href = "/login";
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="bg-white shadow-lg p-8 rounded-xl w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center">Create an Account</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-200">
+      <div className="bg-white p-8 shadow-xl rounded-2xl w-full max-w-md border border-gray-300">
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
+          Create Account
+        </h1>
 
-        <label className="block mt-4">Full Name</label>
+        {/* Full Name */}
+        <label className="text-gray-700">Full Name</label>
         <input
-          className="w-full border p-2 rounded mt-1"
+          className="w-full border p-2 rounded mt-1 bg-gray-50 text-gray-900 placeholder-gray-500
+                     focus:outline-none focus:ring-2 focus:ring-black"
+          placeholder="John Doe"
           onChange={(e) => setName(e.target.value)}
         />
 
-        <label className="block mt-4">Email</label>
+        {/* Email */}
+        <label className="mt-4 block text-gray-700">Email</label>
         <input
           type="email"
-          className="w-full border p-2 rounded mt-1"
+          className="w-full border p-2 rounded mt-1 bg-gray-50 text-gray-900 placeholder-gray-500
+                     focus:outline-none focus:ring-2 focus:ring-black"
+          placeholder="example@gmail.com"
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <label className="block mt-4">Phone Number</label>
+        {/* Phone */}
+        <label className="mt-4 block text-gray-700">Phone</label>
         <input
           type="number"
-          className="w-full border p-2 rounded mt-1"
+          className="w-full border p-2 rounded mt-1 bg-gray-50 text-gray-900 placeholder-gray-500
+                     focus:outline-none focus:ring-2 focus:ring-black"
+          placeholder="9876543210"
           onChange={(e) => setPhone(e.target.value)}
         />
 
-        <label className="block mt-4">Password</label>
+        {/* Password */}
+        <label className="mt-4 block text-gray-700">Password</label>
         <input
           type="password"
-          className="w-full border p-2 rounded mt-1"
+          className="w-full border p-2 rounded mt-1 bg-gray-50 text-gray-900 placeholder-gray-500
+                     focus:outline-none focus:ring-2 focus:ring-black"
+          placeholder="••••••••"
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {/* Button */}
         <button
-          className="w-full bg-black text-white p-3 rounded-lg mt-6"
+          className="w-full bg-black text-white p-3 rounded-xl mt-6 hover:bg-gray-900 transition"
           onClick={handleRegister}
         >
           Register
         </button>
 
-        <p className="text-center mt-4 text-sm">
+        {/* Link */}
+        <p className="text-center mt-4 text-sm text-gray-600">
           Already have an account?{" "}
-          <a href="/login" className="text-blue-600">Login</a>
+          <a href="/login" className="text-blue-600 font-medium">
+            Login
+          </a>
         </p>
       </div>
     </div>

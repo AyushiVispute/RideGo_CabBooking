@@ -7,39 +7,51 @@ export default function Login() {
 
   const handleLogin = async () => {
     const res = await apiPost("/auth/login", { email, password });
-    console.log(res);
-    alert("Login Successful (Demo Only)");
+    alert("Login successful (demo only)");
+    window.location.href = "/home";
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="bg-white shadow-lg p-8 rounded-xl w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center">Login</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-200">
+      <div className="bg-white p-8 shadow-xl rounded-2xl w-full max-w-md border border-gray-300">
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
+          Login
+        </h1>
 
-        <label className="block mt-4">Email</label>
+        {/* Email */}
+        <label className="text-gray-700">Email</label>
         <input
-          className="w-full border p-2 rounded mt-1"
           type="email"
+          className="w-full border p-2 rounded mt-1 bg-gray-50 text-gray-900 placeholder-gray-500
+                     focus:outline-none focus:ring-2 focus:ring-black"
+          placeholder="example@gmail.com"
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <label className="block mt-4">Password</label>
+        {/* Password */}
+        <label className="mt-4 block text-gray-700">Password</label>
         <input
-          className="w-full border p-2 rounded mt-1"
           type="password"
+          className="w-full border p-2 rounded mt-1 bg-gray-50 text-gray-900 placeholder-gray-500
+                     focus:outline-none focus:ring-2 focus:ring-black"
+          placeholder="••••••••"
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {/* Button */}
         <button
-          className="w-full bg-black text-white p-3 rounded-lg mt-6"
+          className="w-full bg-black text-white p-3 rounded-xl mt-6 hover:bg-gray-900 transition"
           onClick={handleLogin}
         >
           Login
         </button>
 
-        <p className="text-center mt-4 text-sm">
-          Don't have an account?{" "}
-          <a href="/register" className="text-blue-600">Register</a>
+        {/* Link */}
+        <p className="text-center mt-4 text-sm text-gray-600">
+          Don’t have an account?{" "}
+          <a href="/register" className="text-blue-600 font-medium">
+            Register
+          </a>
         </p>
       </div>
     </div>
