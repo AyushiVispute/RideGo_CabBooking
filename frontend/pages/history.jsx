@@ -1,35 +1,37 @@
-import { FiMapPin } from "react-icons/fi";
+iimport { useEffect, useState } from "react";
+import { apiGet } from "../utils/api";
 
 export default function History() {
-  const rides = [
-    { id: 1, from: "MG Road", to: "Airport", fare: "₹300" },
-    { id: 2, from: "Hinjewadi", to: "Shivaji Nagar", fare: "₹190" },
-  ];
+  const [rides, setRides] = useState([]);
+
+  useEffect(() => {
+    if (!localStorage.getItem("token")) {
+      window.location.href = "/login";
+    }
+  }, []);
+
+  useEffect(() => {
+    apiGet("/rides/user/history").then((res) => setRides(res));
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center px-4 py-10">
-      <div className="w-full max-w-xl">
+    <div className="min-h-screen bg-gray-100 p-6 flex justify-center">
+      <div className="max-w-xl w-full">
 
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-6">
-          Ride History
-        </h1>
+        <h1 className="text-3xl font-bold mb-6">Ride History</h1>
 
-        {rides.map((ride) => (
-          <div
-            key={ride.id}
-            className="bg-white p-6 shadow-lg rounded-2xl border border-gray-200 mb-4"
-          >
-            <div className="flex items-center gap-3">
-              <FiMapPin className="text-gray-700 text-2xl" />
-              <div>
-                <p className="text-gray-900 font-semibold">
-                  {ride.from} → {ride.to}
-                </p>
-                <p className="text-gray-600 text-sm">Fare: {ride.fare}</p>
-              </div>
+        {rides.length === 0 ? (
+          <p>No rides yet.</p>
+        ) : (
+          rides.map((r) => (
+            <div key={r.id} className="bg-white shadow-md p-5 rounded-2xl border mb-4">
+              <p><strong>Pickup:</strong> {r.pickup}</p>
+              <p><strong>Drop:</strong> {r.drop}</p>
+              <p><strong>Fare:</strong> ₹{r.fare}</p>
+              <p><strong>Status:</strong> {r.status}</p>
             </div>
-          </div>
-        ))}
+          ))
+        )}
 
       </div>
     </div>

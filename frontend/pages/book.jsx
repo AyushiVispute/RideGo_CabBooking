@@ -1,52 +1,58 @@
-import { FiDollarSign, FiClock, FiMapPin } from "react-icons/fi";
+import { useEffect } from "react";
+import { apiPost } from "../utils/api";
+import { FiClock, FiMapPin, FiNavigation } from "react-icons/fi";
 
 export default function Book() {
-  const handleBookRide = () => {
-    alert("Ride booked (demo only)");
+  // 🔐 Protect route
+  useEffect(() => {
+    if (!localStorage.getItem("token")) {
+      window.location.href = "/login";
+    }
+  }, []);
+
+  const pickup = localStorage.getItem("pickup");
+  const drop = localStorage.getItem("drop");
+  const fare = localStorage.getItem("fare");
+  const distance = localStorage.getItem("distance");
+  const duration = localStorage.getItem("duration");
+
+  const confirmRide = async () => {
+    const res = await apiPost("/rides/request", { pickup, drop });
+    localStorage.setItem("ride_id", res.id);
     window.location.href = "/ride-status";
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center px-4 py-10">
-      <div className="w-full max-w-xl">
+    <div className="min-h-screen bg-gray-100 p-6 flex justify-center">
+      <div className="max-w-xl w-full bg-white shadow-xl p-6 rounded-3xl">
 
-        {/* Heading */}
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-6">
-          Fare Estimate
-        </h1>
+        <h1 className="text-3xl font-bold mb-6">Confirm your ride</h1>
 
-        {/* Fare Details Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-200">
+        <div className="bg-gray-50 p-6 rounded-2xl border">
+          <p className="text-lg font-semibold text-gray-800">₹ {fare}</p>
 
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            Estimated Fare: <span className="text-black">₹180</span>
-          </h2>
-
-          <div className="flex items-center gap-3 mt-4">
-            <FiMapPin className="text-gray-600 text-xl" />
-            <p className="text-gray-700 text-md">Distance: 12.4 km</p>
+          <div className="flex items-center gap-3 mt-4 text-gray-700">
+            <FiMapPin /> Pickup: {pickup}
           </div>
 
-          <div className="flex items-center gap-3 mt-3">
-            <FiClock className="text-gray-600 text-xl" />
-            <p className="text-gray-700 text-md">Estimated Time: 22 mins</p>
+          <div className="flex items-center gap-3 mt-2 text-gray-700">
+            <FiNavigation /> Drop: {drop}
           </div>
 
-          <div className="flex items-center gap-3 mt-3">
-            <FiDollarSign className="text-gray-600 text-xl" />
-            <p className="text-gray-700 text-md">Base Fare + Distance + Time</p>
+          <div className="flex items-center gap-3 mt-2 text-gray-700">
+            <FiClock /> Duration: {duration} min
           </div>
 
+          <p className="text-gray-700 mt-2">Distance: {distance} km</p>
         </div>
 
-        {/* Book Button */}
         <button
-          className="w-full bg-black text-white py-4 rounded-xl mt-8 text-lg font-semibold 
-                     hover:bg-gray-900 transition shadow-md"
-          onClick={handleBookRide}
+          className="w-full bg-black text-white mt-8 py-4 rounded-xl text-lg hover:bg-gray-900"
+          onClick={confirmRide}
         >
-          Book Ride
+          Confirm Ride
         </button>
+
       </div>
     </div>
   );

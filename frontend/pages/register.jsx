@@ -6,80 +6,77 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    const res = await apiPost("/auth/register", {
+    setLoading(true);
+
+    const body = {
       name,
       email,
       phone,
-      password,
-    });
+      password
+    };
 
-    alert("Registration successful (demo)");
-    window.location.href = "/login";
+    console.log("Sending to backend:", body); // DEBUG
+
+    try {
+      const res = await apiPost("/auth/register", body);
+      alert("Account Created!");
+      window.location.href = "/login";
+    } catch (err) {
+      alert("Registration failed: " + err.message);
+    }
+
+    setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200">
       <div className="bg-white p-8 shadow-xl rounded-2xl w-full max-w-md border border-gray-300">
+
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
           Create Account
         </h1>
 
-        {/* Full Name */}
-        <label className="text-gray-700">Full Name</label>
+        <label className="text-gray-700 font-medium">Full Name</label>
         <input
-          className="w-full border p-2 rounded mt-1 bg-gray-50 text-gray-900 placeholder-gray-500
-                     focus:outline-none focus:ring-2 focus:ring-black"
-          placeholder="John Doe"
+          value={name}
           onChange={(e) => setName(e.target.value)}
+          className="w-full border p-3 rounded-xl mt-1 bg-gray-100"
         />
 
-        {/* Email */}
-        <label className="mt-4 block text-gray-700">Email</label>
+        <label className="mt-4 block text-gray-700 font-medium">Email</label>
         <input
           type="email"
-          className="w-full border p-2 rounded mt-1 bg-gray-50 text-gray-900 placeholder-gray-500
-                     focus:outline-none focus:ring-2 focus:ring-black"
-          placeholder="example@gmail.com"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="w-full border p-3 rounded-xl mt-1 bg-gray-100"
         />
 
-        {/* Phone */}
-        <label className="mt-4 block text-gray-700">Phone</label>
+        <label className="mt-4 block text-gray-700 font-medium">Phone</label>
         <input
-          type="number"
-          className="w-full border p-2 rounded mt-1 bg-gray-50 text-gray-900 placeholder-gray-500
-                     focus:outline-none focus:ring-2 focus:ring-black"
-          placeholder="9876543210"
+          type="text"
+          value={phone}
           onChange={(e) => setPhone(e.target.value)}
+          className="w-full border p-3 rounded-xl mt-1 bg-gray-100"
         />
 
-        {/* Password */}
-        <label className="mt-4 block text-gray-700">Password</label>
+        <label className="mt-4 block text-gray-700 font-medium">Password</label>
         <input
           type="password"
-          className="w-full border p-2 rounded mt-1 bg-gray-50 text-gray-900 placeholder-gray-500
-                     focus:outline-none focus:ring-2 focus:ring-black"
-          placeholder="••••••••"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
-        />
+          className="w-full border p-3 rounded-xl mt-1 bg-gray-50"
+          placeholder="Enter password"
+      />
 
-        {/* Button */}
         <button
-          className="w-full bg-black text-white p-3 rounded-xl mt-6 hover:bg-gray-900 transition"
           onClick={handleRegister}
+          className="w-full bg-black text-white p-3 rounded-xl mt-6 hover:bg-gray-800 transition"
         >
-          Register
+          {loading ? "Creating Account..." : "Register"}
         </button>
-
-        {/* Link */}
-        <p className="text-center mt-4 text-sm text-gray-600">
-          Already have an account?{" "}
-          <a href="/login" className="text-blue-600 font-medium">
-            Login
-          </a>
-        </p>
       </div>
     </div>
   );

@@ -1,39 +1,47 @@
-import { FiCreditCard } from "react-icons/fi";
+import { useEffect } from "react";
+import { apiPost } from "../utils/api";
 
 export default function Payment() {
-  const payNow = () => {
-    alert("Payment Successful (Demo)");
-    window.location.href = "/rating";
+  const amount = localStorage.getItem("fare");
+  const ride_id = localStorage.getItem("ride_id");
+
+  // 🔐 Protect page
+  useEffect(() => {
+    if (!localStorage.getItem("token")) {
+      window.location.href = "/login";
+    }
+  }, []);
+
+  const payNow = async () => {
+    const res = await apiPost("/payments/create", {
+      ride_id,
+      amount,
+    });
+
+    if (res.success) {
+      alert("Payment Successful!");
+      window.location.href = "/history";
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center px-4 py-10">
-      <div className="w-full max-w-xl">
+    <div className="min-h-screen bg-gray-100 flex justify-center p-8">
+      <div className="max-w-md bg-white shadow-xl p-8 rounded-3xl border">
 
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-6">
-          Payment
-        </h1>
+        <h1 className="text-3xl font-bold text-center mb-6">Payment</h1>
 
-        <div className="bg-white shadow-xl rounded-2xl p-6 border border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">Total Fare</h2>
-
-          <p className="text-3xl font-bold text-black mt-3">₹180</p>
-
-          <div className="flex items-center gap-3 mt-4">
-            <FiCreditCard className="text-gray-600 text-xl" />
-            <p className="text-gray-700">Pay using UPI / Card / Cash</p>
-          </div>
-        </div>
+        <p className="text-gray-700 text-center mb-6">
+          Total Fare:
+          <span className="text-black font-bold"> ₹{amount}</span>
+        </p>
 
         <button
+          className="w-full bg-black text-white py-4 rounded-xl text-lg hover:bg-gray-900"
           onClick={payNow}
-          className="w-full bg-black text-white py-4 rounded-xl mt-8 text-lg font-semibold hover:bg-gray-900 transition shadow-md"
         >
           Pay Now
         </button>
-
       </div>
     </div>
   );
 }
-
