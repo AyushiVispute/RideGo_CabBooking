@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import relationship
-from .database import Base
+from app.database import Base
 
 
 class User(Base):
@@ -9,16 +9,15 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
-    phone = Column(String)
+    phone = Column(String, nullable=True)
     password_hash = Column(String, nullable=False)
-
 
 
 class Ride(Base):
     __tablename__ = "rides"
 
     id = Column(Integer, primary_key=True, index=True)
-    rider_id = Column(Integer, ForeignKey("users.id"))
+    rider_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # keep nullable
     pickup = Column(String, nullable=False)
     drop = Column(String, nullable=False)
     distance_km = Column(Float, nullable=True)
@@ -26,7 +25,7 @@ class Ride(Base):
     fare = Column(Float, nullable=True)
     status = Column(String, default="requested")
 
-    rider = relationship("User")
+    rider = relationship("User", backref="rides")
 
 
 class Payment(Base):
@@ -36,3 +35,5 @@ class Payment(Base):
     ride_id = Column(Integer, ForeignKey("rides.id"))
     amount = Column(Float, nullable=False)
     status = Column(String, default="pending")
+
+    ride = relationship("Ride", backref="payments")

@@ -1,7 +1,9 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 
-# -------- AUTH ----------
+
+# ---------- AUTH ----------
+
 class RegisterRequest(BaseModel):
     name: str
     email: EmailStr
@@ -19,14 +21,13 @@ class AuthResponse(BaseModel):
     message: str
     token: Optional[str] = None
 
-    class Config:
-        from_attributes = True     # Pydantic v2 fix
 
+# ---------- RIDES ----------
 
-# -------- RIDES ----------
 class RideRequest(BaseModel):
     pickup: str
     drop: str
+    fare: Optional[float] = None
 
 
 class RideResponse(BaseModel):
@@ -34,10 +35,10 @@ class RideResponse(BaseModel):
     pickup: str
     drop: str
     status: str
-    fare: float
+    fare: Optional[float]
 
     class Config:
-        from_attributes = True     # Pydantic v2 fix
+        from_attributes = True  # for ORM models
 
 
 class EstimateResponse(BaseModel):
@@ -45,11 +46,9 @@ class EstimateResponse(BaseModel):
     duration_min: float
     fare: float
 
-    class Config:
-        from_attributes = True
 
+# ---------- PAYMENTS ----------
 
-# -------- PAYMENTS ----------
 class PaymentCreate(BaseModel):
     ride_id: int
     amount: float
@@ -58,6 +57,3 @@ class PaymentCreate(BaseModel):
 class PaymentResponse(BaseModel):
     success: bool
     status: str
-
-    class Config:
-        from_attributes = True
