@@ -1,46 +1,48 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { apiPost } from "../utils/api";
 
 export default function Payment() {
-  const amount = localStorage.getItem("fare");
-  const ride_id = localStorage.getItem("ride_id");
+  const [amount, setAmount] = useState("");
+  const [ride_id, setRideId] = useState("");
 
-  // 🔐 Protect page
+  // Load localStorage safely + protect page
   useEffect(() => {
-    if (!localStorage.getItem("token")) {
-      window.location.href = "/login";
+    if (typeof window !== "undefined") {
+      if (!localStorage.getItem("token")) {
+        window.location.href = "/login";
+        return;
+      }
+
+      setAmount(localStorage.getItem("fare") || "");
+      setRideId(localStorage.getItem("ride_id") || "");
     }
   }, []);
 
-  const payNow = async () => {
-    const res = await apiPost("/payments/create", {
-      ride_id,
-      amount,
-    });
-
-    if (res.success) {
-      alert("Payment Successful!");
-      window.location.href = "/history";
+  const makePayment = async () => {
+    try {
+      const res = await apiPost("/payments/create", { ride_id, amount });
+      alert("Payment successful!");
+      window.location.href = "/ride-status";
+    } catch (err) {
+      alert("Payment failed: " + err.message);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center p-8">
-      <div className="max-w-md bg-white shadow-xl p-8 rounded-3xl border">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
 
-        <h1 className="text-3xl font-bold text-center mb-6">Payment</h1>
+        <h1 className="text-3xl font-bold mb-4 text-center">Payment</h1>
 
-        <p className="text-gray-700 text-center mb-6">
-          Total Fare:
-          <span className="text-black font-bold"> ₹{amount}</span>
-        </p>
+        <p className="text-xl mb-4">Amount: <b>₹ {amount}</b></p>
 
         <button
-          className="w-full bg-black text-white py-4 rounded-xl text-lg hover:bg-gray-900"
-          onClick={payNow}
+          className="w-full p-4 bg-black text-white rounded-xl text-lg"
+          onClick={makePayment}
         >
           Pay Now
         </button>
+
       </div>
     </div>
   );

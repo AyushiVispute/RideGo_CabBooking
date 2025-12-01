@@ -3,7 +3,7 @@ export const API = "http://localhost:8000";
 export async function apiPost(url, data) {
   const res = await fetch(API + url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", },
     body: JSON.stringify(data),
   });
 
@@ -25,3 +25,26 @@ export async function apiPost(url, data) {
 
   return json;
 }
+export async function apiGet(url) {
+  const res = await fetch(API + url, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  const text = await res.text();
+  let json = {};
+
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch (err) {
+    console.error("Invalid JSON from server (GET):", text);
+  }
+
+  if (!res.ok) {
+    let msg = json.detail || json.message || `HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+
+  return json;
+}
+

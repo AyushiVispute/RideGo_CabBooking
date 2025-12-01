@@ -1,25 +1,41 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { apiPost } from "../utils/api";
 import { FiClock, FiMapPin, FiNavigation } from "react-icons/fi";
 
 export default function Book() {
-  // 🔐 Protect route
+  const [pickup, setPickup] = useState("");
+  const [drop, setDrop] = useState("");
+  const [fare, setFare] = useState("");
+  const [distance, setDistance] = useState("");
+  const [duration, setDuration] = useState("");
+
+  // 🔐 Protect route + load localStorage safely
   useEffect(() => {
-    if (!localStorage.getItem("token")) {
-      window.location.href = "/login";
+    if (typeof window !== "undefined") {
+      // Route protection
+      if (!localStorage.getItem("token")) {
+        window.location.href = "/login";
+        return;
+      }
+
+      // Load values safely
+      setPickup(localStorage.getItem("pickup") || "");
+      setDrop(localStorage.getItem("drop") || "");
+      setFare(localStorage.getItem("fare") || "");
+      setDistance(localStorage.getItem("distance") || "");
+      setDuration(localStorage.getItem("duration") || "");
     }
   }, []);
 
-  const pickup = localStorage.getItem("pickup");
-  const drop = localStorage.getItem("drop");
-  const fare = localStorage.getItem("fare");
-  const distance = localStorage.getItem("distance");
-  const duration = localStorage.getItem("duration");
-
   const confirmRide = async () => {
-    const res = await apiPost("/rides/request", { pickup, drop });
-    localStorage.setItem("ride_id", res.id);
-    window.location.href = "/ride-status";
+    try {
+      const res = await apiPost("/rides/request", { pickup, drop });
+
+      localStorage.setItem("ride_id", res.id);
+      window.location.href = "/ride-status";
+    } catch (err) {
+      alert("Ride request failed: " + err.message);
+    }
   };
 
   return (

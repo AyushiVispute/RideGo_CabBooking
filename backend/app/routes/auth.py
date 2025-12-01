@@ -9,35 +9,32 @@ router = APIRouter()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# ---------------- PASSWORD HELPERS ---------------- #
 
-def hash_password(password: str) -> str:
-    # bcrypt only supports up to 72 bytes – so we truncate to be safe
+def hash_password(password: str):
     return pwd_context.hash(password[:72])
 
-
-def verify_password(plain: str, hashed: str) -> bool:
+def verify_password(plain, hashed):
     return pwd_context.verify(plain, hashed)
 
+# ---------------- REGISTER ---------------- #
 
-# ---------- REGISTER ----------
 @router.post("/register", response_model=schemas.AuthResponse)
 def register_user(data: schemas.RegisterRequest, db: Session = Depends(get_db)):
 
-    # Debug: see what password arrives
-    print("REGISTER password received:", repr(data.password))
+    print("DEBUG incoming password:", repr(data.password))
 
-    existing = db.query(models.User).filter(models.User.email == data.email).first()
-    if existing:
+    if db.query(models.User).filter(models.User.email == data.email).first():
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
+            status_code=400,
+            detail="Email already exists",
         )
 
     user = models.User(
         name=data.name,
         email=data.email,
         phone=data.phone,
-        password_hash=hash_password(data.password),
+        password_hash=hash_password(data.password)
     )
 
     db.add(user)
@@ -46,26 +43,25 @@ def register_user(data: schemas.RegisterRequest, db: Session = Depends(get_db)):
 
     return {
         "success": True,
-        "message": "Account created successfully",
-        "token": None,
+        "message": "Account created",
+        "token": "dummy-token"
     }
 
+# ---------------- LOGIN ---------------- #
 
-# ---------- LOGIN ----------
 @router.post("/login", response_model=schemas.AuthResponse)
-def login_user(data: schemas.LoginRequest, db: Session = Depends(get_db)):
+def login(data: schemas.LoginRequest, db: Session = Depends(get_db)):
 
     user = db.query(models.User).filter(models.User.email == data.email).first()
 
     if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+            status_code=401,
+            detail="Invalid email or password"
         )
 
-    # dummy token for now – your frontend just needs *some* token string
     return {
         "success": True,
-        "message": "Login successful",
-        "token": "dummy-token",
+        "message": "Login OK",
+        "token": "dummy-token"
     }

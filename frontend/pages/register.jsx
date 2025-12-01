@@ -11,18 +11,10 @@ export default function Register() {
   const handleRegister = async () => {
     setLoading(true);
 
-    const body = {
-      name,
-      email,
-      phone,
-      password
-    };
-
-    console.log("Sending to backend:", body); // DEBUG
-
     try {
-      const res = await apiPost("/auth/register", body);
-      alert("Account Created!");
+      await apiPost("/auth/register", { name, email, phone, password });
+
+      alert("Account created successfully!");
       window.location.href = "/login";
     } catch (err) {
       alert("Registration failed: " + err.message);
@@ -32,51 +24,76 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-200">
-      <div className="bg-white p-8 shadow-xl rounded-2xl w-full max-w-md border border-gray-300">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-3">
+      {/* Card */}
+      <div className="bg-white/90 backdrop-blur-md p-8 rounded-3xl w-full max-w-md shadow-xl border border-gray-200">
 
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
+        {/* Title */}
+        <h1 className="text-3xl font-semibold text-center mb-6 text-gray-800">
           Create Account
         </h1>
 
-        <label className="text-gray-700 font-medium">Full Name</label>
+        {/* Full Name */}
+        <label className="font-medium text-gray-700">Full Name</label>
         <input
+          className="w-full p-3 border rounded-xl mt-1 bg-gray-50 text-black 
+                    focus:ring-2 focus:ring-black outline-none transition"
+          placeholder="Ayu"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full border p-3 rounded-xl mt-1 bg-gray-100"
         />
 
-        <label className="mt-4 block text-gray-700 font-medium">Email</label>
+        {/* Email */}
+        <label className="font-medium text-gray-700 mt-4 block">Email</label>
         <input
           type="email"
+          className="w-full p-3 border rounded-xl mt-1 bg-gray-50 text-black 
+                    focus:ring-2 focus:ring-black outline-none transition"
+          placeholder="example@gmail.com"
+          autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full border p-3 rounded-xl mt-1 bg-gray-100"
         />
 
-        <label className="mt-4 block text-gray-700 font-medium">Phone</label>
+        {/* Phone */}
+        <label className="font-medium text-gray-700 mt-4 block">Phone</label>
         <input
           type="text"
+          className="w-full p-3 border rounded-xl mt-1 bg-gray-50 text-black 
+                    focus:ring-2 focus:ring-black outline-none transition"
+          placeholder="9999999999"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full border p-3 rounded-xl mt-1 bg-gray-100"
         />
-
-        <label className="mt-4 block text-gray-700 font-medium">Password</label>
+        {/* Password */}
+        <label className="font-medium text-gray-700 mt-4 block">Password</label>
         <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border p-3 rounded-xl mt-1 bg-gray-50"
-          placeholder="Enter password"
-      />
-
+            type="password"
+            className="w-full p-3 border rounded-xl mt-1 bg-gray-50 text-black 
+                      focus:ring-2 focus:ring-black outline-none transition"
+            placeholder="Enter password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+        />
+        {/* Register Button */}
         <button
           onClick={handleRegister}
-          className="w-full bg-black text-white p-3 rounded-xl mt-6 hover:bg-gray-800 transition"
+          disabled={loading}
+          className={`w-full mt-6 p-3 rounded-xl text-white font-medium transition 
+          ${loading ? "bg-gray-800 cursor-not-allowed" : "bg-black hover:bg-gray-900"}`}
         >
           {loading ? "Creating Account..." : "Register"}
         </button>
+
+        {/* Login Link */}
+        <p className="text-center mt-4 text-gray-700">
+          Already have an account?{" "}
+          <a href="/login" className="text-blue-600 font-medium hover:underline">
+            Login
+          </a>
+        </p>
+
       </div>
     </div>
   );
