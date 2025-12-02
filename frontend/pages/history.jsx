@@ -1,4 +1,4 @@
-iimport { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiGet } from "../utils/api";
 
 export default function History() {

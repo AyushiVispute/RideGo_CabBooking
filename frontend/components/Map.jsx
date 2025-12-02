@@ -5,13 +5,13 @@ import {
   Polyline,
   useMap,
 } from "react-leaflet";
+import { useState, useEffect } from "react";
 import L from "leaflet";
-import { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
 
-/* -----------------------------
-   MARKER ICONS
------------------------------- */
+/* --------------------------------------------------
+   ICONS
+-------------------------------------------------- */
 
 // User icon
 const userIcon = L.icon({
@@ -34,19 +34,18 @@ const dropIcon = L.icon({
   iconAnchor: [21, 42],
 });
 
-// Car icon (rotates)
+// Car icon (Uber-style using rotation)
 const getCarIcon = (angle) =>
   L.divIcon({
     html: `<img src="https://cdn-icons-png.flaticon.com/512/3202/3202926.png"
-             style="width:40px;height:40px;transform:rotate(${angle}deg);" />`,
+           style="width:40px;height:40px;transform:rotate(${angle}deg);" />`,
     iconSize: [40, 40],
     className: "",
   });
 
-/* -----------------------------
-   FIT MAP TO ROUTE
------------------------------- */
-
+/* --------------------------------------------------
+   AUTO FIT BOUNDS
+-------------------------------------------------- */
 function FitBounds({ bounds }) {
   const map = useMap();
 
@@ -59,17 +58,16 @@ function FitBounds({ bounds }) {
   return null;
 }
 
-/* -----------------------------
-   MAIN MAP
------------------------------- */
-
+/* --------------------------------------------------
+   MAIN MAP COMPONENT
+-------------------------------------------------- */
 export default function Map({ pickupPos, dropPos, startRideAnimation }) {
   const [userPos, setUserPos] = useState(null);
   const [route, setRoute] = useState([]);
   const [driverPos, setDriverPos] = useState(null);
-  const [angle, setAngle] = useState(0);
+  const [carAngle, setCarAngle] = useState(0);
 
-  // Get user GPS position
+  /* ----------------------- USER LOCATION ---------------------- */
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -79,11 +77,11 @@ export default function Map({ pickupPos, dropPos, startRideAnimation }) {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
         }),
-      () => console.warn("Location permission denied")
+      () => console.warn("Location blocked")
     );
   }, []);
 
-  // Fetch route from OSRM when pickup + drop set
+  /* ----------------------- FETCH ROUTE (OSRM) ---------------------- */
   useEffect(() => {
     if (!pickupPos || !dropPos) {
       setRoute([]);
@@ -104,19 +102,19 @@ export default function Map({ pickupPos, dropPos, startRideAnimation }) {
         ]);
 
         setRoute(coords);
-        setDriverPos(coords[0]); // start at route beginning
+        setDriverPos(coords[0]); // Start car at first point
       })
-      .catch((e) => console.error("Route error:", e));
+      .catch(() => console.warn("Routing error"));
   }, [pickupPos, dropPos]);
 
-  // Smooth Uber-like car animation
+  /* ----------------------- CAR ANIMATION ---------------------- */
   useEffect(() => {
     if (!startRideAnimation || route.length < 2) return;
 
     let index = 0;
     let progress = 0;
     let lastTime = null;
-    const SPEED = 0.002; // lower = slower
+    const SPEED = 0.002; // Uber-like smooth speed
 
     const animate = (time) => {
       if (!lastTime) lastTime = time;
@@ -128,20 +126,22 @@ export default function Map({ pickupPos, dropPos, startRideAnimation }) {
       if (progress >= 1) {
         progress = 0;
         index++;
-        if (index >= route.length - 1) return; // finished route
+        if (index >= route.length - 1) return; // End of route
       }
 
       const p1 = route[index];
       const p2 = route[index + 1];
 
+      // Interpolate car position
       const lat = p1[0] + (p2[0] - p1[0]) * progress;
       const lng = p1[1] + (p2[1] - p1[1]) * progress;
 
       setDriverPos([lat, lng]);
 
+      // Car direction angle
       const dx = p2[1] - p1[1];
       const dy = p2[0] - p1[0];
-      setAngle((Math.atan2(dy, dx) * 180) / Math.PI);
+      setCarAngle((Math.atan2(dy, dx) * 180) / Math.PI);
 
       requestAnimationFrame(animate);
     };
@@ -150,10 +150,10 @@ export default function Map({ pickupPos, dropPos, startRideAnimation }) {
   }, [startRideAnimation, route]);
 
   return (
-    <div className="relative max-w-2xl mx-auto mt-8">
+    <div className="relative max-w-2xl mx-auto mt-6">
       <MapContainer
-        center={userPos || { lat: 18.52, lng: 73.85 }} // Pune default
-        zoom={12}
+        center={userPos || { lat: 18.5204, lng: 73.8567 }} // Default Pune
+        zoom={13}
         style={{
           height: "400px",
           width: "100%",
@@ -161,29 +161,30 @@ export default function Map({ pickupPos, dropPos, startRideAnimation }) {
           overflow: "hidden",
         }}
       >
-        {/* ⭐ MapMyIndia / Mappls light-style map (Google-like) */}
-       <TileLayer
-            url={`https://apis.mapmyindia.com/advancedmaps/v1/1f6445c88fe674c4ca37ad8471d65112/streets/{z}/{x}/{y}.png`}
-            attribution="© MapmyIndia"
-          />
+        {/* ⭐ CARTO Voyager Light Theme (Google-like, free) */}
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution="© CARTO"
+          subdomains={["a", "b", "c", "d"]}
+        />
 
-        {/* Auto-fit to route */}
+        {/* Fit to route */}
         {route.length > 1 && <FitBounds bounds={route} />}
 
-        {/* User marker */}
+        {/* User Marker */}
         {userPos && <Marker position={userPos} icon={userIcon} />}
 
-        {/* Pickup & Drop markers */}
+        {/* Pickup & Drop */}
         {pickupPos && <Marker position={pickupPos} icon={pickupIcon} />}
         {dropPos && <Marker position={dropPos} icon={dropIcon} />}
 
-        {/* Route polyline */}
+        {/* Route Polyline */}
         {route.length > 0 && (
-          <Polyline positions={route} color="cyan" weight={6} opacity={0.9} />
+          <Polyline positions={route} color="black" weight={5} opacity={0.9} />
         )}
 
-        {/* Moving car */}
-        {driverPos && <Marker position={driverPos} icon={getCarIcon(angle)} />}
+        {/* Uber Car Marker */}
+        {driverPos && <Marker position={driverPos} icon={getCarIcon(carAngle)} />}
       </MapContainer>
     </div>
   );

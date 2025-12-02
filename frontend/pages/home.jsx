@@ -1,17 +1,13 @@
-// frontend/pages/home.jsx
-
 import { useState, useEffect } from "react";
-import { FiMapPin, FiNavigation } from "react-icons/fi";
 import dynamic from "next/dynamic";
-import { apiGet } from "../utils/api";
-import RideSheet from "../components/RideSheet";
+import { FiMapPin, FiNavigation } from "react-icons/fi";
 
-// Load Leaflet map (client-side only)
+// Leaflet map (client-side only)
 const Map = dynamic(() => import("../components/Map"), { ssr: false });
 
 export default function Home() {
-  const [pickup, setPickup] = useState("");
-  const [drop, setDrop] = useState("");
+  const [pickupText, setPickupText] = useState("");
+  const [dropText, setDropText] = useState("");
 
   const [pickupPos, setPickupPos] = useState(null);
   const [dropPos, setDropPos] = useState(null);
@@ -19,205 +15,423 @@ export default function Home() {
   const [pickupSuggestions, setPickupSuggestions] = useState([]);
   const [dropSuggestions, setDropSuggestions] = useState([]);
 
-  const [startRideAnimation, setStartRideAnimation] = useState(false);
-  const [driverInfo, setDriverInfo] = useState(null);
+  const [stage, setStage] = useState("search");
 
-  // 🔐 Protect route – redirect if not logged in
+  const rideOptions = [
+    {
+      id: "auto",
+      name: "Auto",
+      desc: "Budget friendly auto ride",
+      seats: 3,
+      img: "https://d1a3f4spazzrp4.cloudfront.net/car-types/haloProductImages/v1.1/TukTuk_Green_v1.png",
+      price: "250.00",
+    },
+    {
+      id: "bike",
+      name: "Bike",
+      desc: "Fast solo travel",
+      seats: 1,
+      img: "https://d1a3f4spazzrp4.cloudfront.net/car-types/haloProductImages/v1.1/Motorcycle.png",
+      price: "250.00",
+    },
+    {
+      id: "mini",
+      name: "Mini",
+      desc: "Affordable compact car",
+      seats: 4,
+      img: "https://d1a3f4spazzrp4.cloudfront.net/car-types/haloProductImages/Hatchback.png",
+      price: "250.00",
+    },
+    {
+      id: "Sedan",
+      name: "Sedan",
+      desc: "Comfortable sedan cars",
+      seats: 4,
+      img: "https://d1a3f4spazzrp4.cloudfront.net/car-types/haloProductImages/v1.1/UberX_v1.png",
+      price: "250.00",
+    },
+    {
+      id: "Electric",
+      name: "SUV",
+      desc: "Affordable rides in electric vehicle",
+      seats: 4,
+      img: "https://d1a3f4spazzrp4.cloudfront.net/car-types/haloProductImages/UberComfort_Green.png",
+      price: "250.00",
+    },
+    {
+      id: "RideGO XL",
+      name: "Premium",
+      desc: "Affordable rides for large groups",
+      seats: 6,
+      img: "https://d1a3f4spazzrp4.cloudfront.net/car-types/haloProductImages/package_UberXL_new_2022.png",
+      price: "250.00",
+    },
+    {
+      id: "Courier Moto",
+      name: "Quick Delivery",
+      desc: "Send small items economically",
+      seats: 1,
+      img: "https://d1a3f4spazzrp4.cloudfront.net/car-types/haloProductImages/Courier_Moto.png",
+      price: "250.00",
+    },
+  ];
+
+  const [selectedRideId, setSelectedRideId] = useState(null);
+  const [startRideAnimation, setStartRideAnimation] = useState(false);
+
   useEffect(() => {
-    const token = typeof window !== "undefined" && localStorage.getItem("token");
-    if (!token) window.location.href = "/login";
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("token");
   }, []);
 
-  /* -------------------------------------
-     Autocomplete search (Photon, free)
-  -------------------------------------- */
   async function searchPlaces(query, setter) {
     if (!query || query.length < 3) {
       setter([]);
       return;
     }
 
-    const res = await fetch(
-      `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lang=en`
-    );
-    const data = await res.json();
+    try {
+      const res = await fetch(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lang=en`
+      );
+      const data = await res.json();
 
-    const places = data.features.map((f) => ({
-      name: f.properties.name,
-      address:
-        f.properties.street ||
-        f.properties.suburb ||
-        f.properties.city ||
-        f.properties.state ||
-        "",
-      lat: f.geometry.coordinates[1],
-      lng: f.geometry.coordinates[0],
-    }));
+      const results = data.features.map((item) => ({
+        name: item.properties.name,
+        address:
+          item.properties.street ||
+          item.properties.suburb ||
+          item.properties.city ||
+          item.properties.state ||
+          "",
+        lat: item.geometry.coordinates[1],
+        lng: item.geometry.coordinates[0],
+      }));
 
-    setter(places);
+      setter(results);
+    } catch (err) {
+      console.error("Autocomplete error:", err);
+      setter([]);
+    }
   }
 
-  /* -------------------------------------
-     Search Rides – requires coords
-  -------------------------------------- */
-  const handleEstimate = async () => {
-    if (!pickupPos || !dropPos) {
-      alert("Please choose pickup & drop from suggestions.");
-      return;
-    }
-
-    // Backend estimate using text (optional)
-    const res = await apiGet(`/rides/estimate?pickup=${pickup}&drop=${drop}`);
-
-    localStorage.setItem("fare", res.fare);
-    localStorage.setItem("distance", res.distance_km);
-    localStorage.setItem("duration", res.duration_min);
-    localStorage.setItem("pickup", pickup);
-    localStorage.setItem("drop", drop);
+  const handlePickupSelect = (place) => {
+    setPickupText(place.name);
+    setPickupPos({ lat: place.lat, lng: place.lng });
+    setPickupSuggestions([]);
   };
 
-  return (
-    <div className="min-h-screen bg-gray-100 px-4 pb-24">
-      {/* Header */}
-      <div className="max-w-2xl mx-auto mt-6">
-        <h1 className="text-4xl font-extrabold text-gray-900">Book your ride</h1>
-        <p className="text-gray-600 mt-1 text-lg">Get anywhere, anytime</p>
-      </div>
+  const handleDropSelect = (place) => {
+    setDropText(place.name);
+    setDropPos({ lat: place.lat, lng: place.lng });
+    setDropSuggestions([]);
+  };
 
-      {/* Uber-style search card */}
-      <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-lg mt-6 p-6 border border-gray-200">
-        {/* Pickup */}
-        <div className="relative mb-6">
-          <FiMapPin className="absolute left-3 top-4 text-gray-600 text-xl" />
-          <input
-            className="w-full border p-4 pl-12 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black"
-            placeholder="Pickup location"
-            value={pickup}
-            onChange={(e) => {
-              const val = e.target.value;
-              setPickup(val);
+  const handleSearchRides = () => {
+    if (!pickupPos || !dropPos) {
+      alert("Please select both pickup and drop from suggestions.");
+      return;
+    }
+    setStage("rides");
+  };
+
+  const handleContinueFromRides = () => {
+    if (!selectedRideId) {
+      alert("Please select a ride type first.");
+      return;
+    }
+    setStage("confirm");
+  };
+
+  const handleConfirmRide = () => {
+    if (!pickupPos || !dropPos || !selectedRideId) {
+      alert("Pickup, drop & ride must be selected.");
+      return;
+    }
+    setStage("animate");
+    setStartRideAnimation(true);
+  };
+
+  const selectedRide = rideOptions.find((r) => r.id === selectedRideId) || null;
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <div className="mx-auto max-w-6xl lg:flex lg:h-screen lg:gap-6">
+        {/* LEFT PANEL */}
+        <div className="hidden lg:flex lg:w-[40%] lg:flex-col lg:p-6 lg:pt-10">
+          <RidePanel
+            variant="desktop"
+            stage={stage}
+            pickupText={pickupText}
+            dropText={dropText}
+            pickupSuggestions={pickupSuggestions}
+            dropSuggestions={dropSuggestions}
+            onPickupChange={(val) => {
+              setPickupText(val);
               searchPlaces(val, setPickupSuggestions);
             }}
-          />
-
-          {/* Pickup suggestions */}
-          {pickupSuggestions.length > 0 && (
-            <div className="absolute z-40 bg-white shadow-xl border rounded-xl mt-1 w-full max-h-60 overflow-y-auto">
-              {pickupSuggestions.map((place, i) => (
-                <div
-                  key={i}
-                  className="p-3 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setPickup(place.name);
-                    setPickupPos({ lat: place.lat, lng: place.lng });
-                    setPickupSuggestions([]);
-                  }}
-                >
-                  <p className="font-semibold">{place.name}</p>
-                  <p className="text-gray-500 text-sm">{place.address}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Drop */}
-        <div className="relative mb-6">
-          <FiNavigation className="absolute left-3 top-4 text-gray-600 text-xl" />
-          <input
-            className="w-full border p-4 pl-12 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black"
-            placeholder="Drop location"
-            value={drop}
-            onChange={(e) => {
-              const val = e.target.value;
-              setDrop(val);
+            onDropChange={(val) => {
+              setDropText(val);
               searchPlaces(val, setDropSuggestions);
             }}
+            onPickupSelect={handlePickupSelect}
+            onDropSelect={handleDropSelect}
+            onSearchRides={handleSearchRides}
+            rideOptions={rideOptions}
+            selectedRideId={selectedRideId}
+            setSelectedRideId={setSelectedRideId}
+            onContinueFromRides={handleContinueFromRides}
+            onConfirmRide={handleConfirmRide}
+            selectedRide={selectedRide}
           />
-
-          {/* Drop suggestions */}
-          {dropSuggestions.length > 0 && (
-            <div className="absolute z-40 bg-white shadow-xl border rounded-xl mt-1 w-full max-h-60 overflow-y-auto">
-              {dropSuggestions.map((place, i) => (
-                <div
-                  key={i}
-                  className="p-3 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setDrop(place.name);
-                    setDropPos({ lat: place.lat, lng: place.lng });
-                    setDropSuggestions([]);
-                  }}
-                >
-                  <p className="font-semibold">{place.name}</p>
-                  <p className="text-gray-500 text-sm">{place.address}</p>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
-        {/* Search button */}
-        <button
-          className="w-full bg-black text-white py-4 rounded-xl text-lg font-semibold hover:bg-gray-900 transition"
-          onClick={handleEstimate}
-        >
-          Search Rides
-        </button>
-      </div>
+        {/* MAP */}
+        <div className="relative w-full lg:w-[60%] lg:p-6 lg:pt-8">
+          <div className="h-[420px] lg:h-full rounded-2xl overflow-hidden shadow">
+            <Map pickupPos={pickupPos} dropPos={dropPos} startRideAnimation={startRideAnimation} />
+          </div>
 
-      {/* Map */}
-      <Map
-        pickupPos={pickupPos}
-        dropPos={dropPos}
-        startRideAnimation={startRideAnimation}
-      />
-
-      {/* Bottom sheet (Uber-style flow) */}
-      <RideSheet
-        pickupPos={pickupPos}
-        dropPos={dropPos}
-        onPickupSelect={setPickupPos}
-        onDropSelect={setDropPos}
-        onRideStart={() => setStartRideAnimation(true)}
-        driverAssigned={(driver) => setDriverInfo(driver)}
-      />
-
-      {/* Ride options */}
-      <div className="max-w-2xl mx-auto mt-10">
-        <h2 className="text-2xl font-bold mb-4">Choose Your Ride</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <RideCard
-            title="Standard"
-            img="https://cdn-icons-png.flaticon.com/512/7439/7439630.png"
-            desc="Affordable everyday rides"
-          />
-          <RideCard
-            title="Auto"
-            img="https://cdn-icons-png.flaticon.com/512/7440/7440524.png"
-            desc="Quick & budget friendly"
-          />
-          <RideCard
-            title="Bike"
-            img="https://cdn-icons-png.flaticon.com/512/7439/7439622.png"
-            desc="Fast solo travel"
-          />
-          <RideCard
-            title="Premium"
-            img="https://cdn-icons-png.flaticon.com/512/7439/7439637.png"
-            desc="Luxury & comfort"
-          />
+          {/* MOBILE SHEET */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-20">
+            <RidePanel
+              variant="mobile"
+              stage={stage}
+              pickupText={pickupText}
+              dropText={dropText}
+              pickupSuggestions={pickupSuggestions}
+              dropSuggestions={dropSuggestions}
+              onPickupChange={(val) => {
+                setPickupText(val);
+                searchPlaces(val, setPickupSuggestions);
+              }}
+              onDropChange={(val) => {
+                setDropText(val);
+                searchPlaces(val, setDropSuggestions);
+              }}
+              onPickupSelect={handlePickupSelect}
+              onDropSelect={handleDropSelect}
+              onSearchRides={handleSearchRides}
+              rideOptions={rideOptions}
+              selectedRideId={selectedRideId}
+              setSelectedRideId={setSelectedRideId}
+              onContinueFromRides={handleContinueFromRides}
+              onConfirmRide={handleConfirmRide}
+              selectedRide={selectedRide}
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function RideCard({ title, img, desc }) {
+/* =========================================================
+   RidePanel – FULLY FIXED VERSION (TEXT VISIBLE)
+========================================================= */
+
+function RidePanel({
+  variant,
+  stage,
+  pickupText,
+  dropText,
+  pickupSuggestions,
+  dropSuggestions,
+  onPickupChange,
+  onDropChange,
+  onPickupSelect,
+  onDropSelect,
+  onSearchRides,
+  rideOptions,
+  selectedRideId,
+  setSelectedRideId,
+  onContinueFromRides,
+  onConfirmRide,
+  selectedRide,
+}) {
+  const isMobile = variant === "mobile";
+
+  const containerClasses = isMobile
+    ? "bg-white rounded-t-3xl shadow-xl p-6 max-w-xl mx-auto border border-gray-200"
+    : "bg-white rounded-3xl shadow-lg p-6 border border-gray-100";
+
   return (
-    <div className="bg-white shadow-lg border rounded-2xl p-5 hover:shadow-xl transition cursor-pointer">
-      <img src={img} className="w-24 mx-auto" />
-      <h3 className="text-center font-semibold text-gray-900 mt-3">{title}</h3>
-      <p className="text-center text-gray-600 text-sm">{desc}</p>
+    <div className={containerClasses}>
+      {isMobile && <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4" />}
+
+      {/* SEARCH STEP */}
+      {stage === "search" && (
+        <>
+          <h1 className="text-2xl font-bold mb-4 text-black">Request a ride</h1>
+
+          {/* Pickup input */}
+          <div className="relative mb-4">
+            <FiMapPin className="absolute left-3 top-3 text-gray-600 text-xl" />
+            <input
+                className="w-full border p-3 pl-11 rounded-xl bg-gray-50 text-black placeholder-gray-500"
+                placeholder="Pickup location"
+                value={pickupText}
+                onChange={(e) => onPickupChange(e.target.value)}
+              />
+          </div>
+
+          {pickupSuggestions.length > 0 && (
+          <div className="border bg-white rounded-xl shadow max-h-48 overflow-y-auto mb-3">
+            {pickupSuggestions.map((place, i) => (
+              <div
+                key={i}
+                className="p-3 hover:bg-gray-100 cursor-pointer"
+                onClick={() => onPickupSelect(place)}
+              >
+                <p className="font-semibold text-black">{place.name}</p>
+                <p className="text-sm text-gray-700">{place.address}</p>
+              </div>
+            ))}
+          </div>
+)}
+
+          {/* Drop input */}
+          <div className="relative mb-4">
+            <FiNavigation className="absolute left-3 top-3 text-gray-600 text-xl" />
+           <input
+              className="w-full border p-3 pl-11 rounded-xl bg-gray-50 text-black placeholder-gray-500"
+              placeholder="Dropoff location"
+              value={dropText}
+              onChange={(e) => onDropChange(e.target.value)}
+            />
+          </div>
+
+          {dropSuggestions.length > 0 && (
+  <div className="border bg-white rounded-xl shadow max-h-48 overflow-y-auto mb-3">
+    {dropSuggestions.map((place, i) => (
+      <div
+        key={i}
+        className="p-3 hover:bg-gray-100 cursor-pointer"
+        onClick={() => onDropSelect(place)}
+      >
+        <p className="font-semibold text-black">{place.name}</p>
+        <p className="text-sm text-gray-700">{place.address}</p>
+      </div>
+    ))}
+  </div>
+)}
+
+          <button
+            onClick={onSearchRides}
+            className="w-full bg-black text-white p-3 rounded-xl mt-2 font-semibold"
+          >
+            Search rides
+          </button>
+        </>
+      )}
+
+      {/* =========================================================
+          RIDE OPTIONS – UBER STYLE (FIXED BLACK TEXT)
+      ========================================================= */}
+      {stage === "rides" && (
+        <>
+          <h2 className="text-xl font-bold mb-3 text-black">Choose a ride</h2>
+          <p className="text-gray-600 mb-3 text-sm">Rides near you</p>
+
+          <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
+            {rideOptions.map((ride) => {
+              const active = ride.id === selectedRideId;
+
+              return (
+                <button
+                  key={ride.id}
+                  onClick={() => setSelectedRideId(ride.id)}
+                  className={`w-full flex items-center justify-between p-4 rounded-2xl border transition shadow-sm
+                    ${active ? "border-black shadow-md bg-white" : "border-gray-300 bg-white hover:border-black"}
+                  `}
+                >
+                  {/* LEFT: vehicle image */}
+                  <img src={ride.img} className="w-20 h-20 object-contain mr-4" />
+
+                  {/* MIDDLE INFO */}
+                  <div className="flex flex-col flex-grow text-left">
+
+                    {/* RIDE TITLE – ALWAYS BLACK */}
+                    <p className="font-bold text-lg text-black flex items-center gap-1">
+                      {ride.name}
+                      {ride.seats && (
+                        <span className="text-sm text-gray-700">• {ride.seats}</span>
+                      )}
+                    </p>
+
+                    {/* ETA – DARK GRAY */}
+                    <p className="text-sm text-gray-600">
+                      {ride.eta || "2 mins away"} •
+                      {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+
+                    {/* DESCRIPTION – DARK GRAY */}
+                    <p className="text-sm text-gray-700 mt-1">{ride.desc}</p>
+                  </div>
+
+                  {/* PRICE – BOLD BLACK */}
+                  <div className="text-right font-semibold text-lg text-black whitespace-nowrap">
+                    ₹{ride.price}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={onContinueFromRides}
+            className="w-full bg-black text-white p-3 rounded-xl mt-4 font-semibold"
+          >
+            Continue
+          </button>
+        </>
+      )}
+
+      {/* CONFIRM PICKUP */}
+      {stage === "confirm" && selectedRide && (
+        <>
+          <h2 className="text-xl font-bold mb-3 text-black">Confirm pickup</h2>
+      <div className="flex items-center justify-between border rounded-3xl p-4 mb-5 bg-gray-50 shadow">
+  
+  {/* LEFT SIDE — image + details */}
+  <div className="flex items-center gap-4">
+    <img src={selectedRide.img} className="w-16 h-16" />
+
+    <div>
+      {/* RIDE NAME (Black) */}
+      <p className="font-semibold text-lg text-black">{selectedRide.name}</p>
+
+      {/* DESCRIPTION */}
+      <p className="text-sm text-gray-600">{selectedRide.desc}</p>
+    </div>
+  </div>
+
+  {/* RIGHT SIDE — PRICE */}
+  <div className="text-right font-semibold text-lg text-black whitespace-nowrap">
+    ₹{selectedRide.price || "250.00"}
+  </div>
+
+</div>
+
+
+          <button
+            onClick={onConfirmRide}
+            className="w-full bg-black text-white p-3 rounded-xl font-semibold"
+          >
+            Confirm pickup
+          </button>
+        </>
+      )}
+
+      {/* ANIMATE */}
+      {stage === "animate" && (
+        <>
+          <h2 className="text-xl font-bold mb-2">Driver is on the way</h2>
+          <p className="text-gray-600 text-sm">
+            Watch the car move on the map.
+          </p>
+        </>
+      )}
     </div>
   );
 }
