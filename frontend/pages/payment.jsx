@@ -159,9 +159,7 @@ export default function Payment() {
           </div>
         )}
 
-        {/* ================================
-            FARE SUMMARY AT BOTTOM
-        ================================= */}
+      
         <div className="mt-8 border-t pt-5">
           <h1 className="text-xl font-bold text-black mb-2">Trip Fare Summary</h1>
 
