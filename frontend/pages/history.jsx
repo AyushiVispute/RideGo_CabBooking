@@ -16,7 +16,7 @@ export default function History() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 flex justify-center">
-      <div className="max-w-xl w-full">
+      <div className="max-w-xl w-full text-black">   {/* <-- FIX ADDED */}
 
         <h1 className="text-3xl font-bold mb-6">Ride History</h1>
 
@@ -24,7 +24,10 @@ export default function History() {
           <p>No rides yet.</p>
         ) : (
           rides.map((r) => (
-            <div key={r.id} className="bg-white shadow-md p-5 rounded-2xl border mb-4">
+            <div
+              key={r.id}
+              className="bg-white shadow-md p-5 rounded-2xl border mb-4 text-black" /* <-- ensure text black */
+            >
               <p><strong>Pickup:</strong> {r.pickup}</p>
               <p><strong>Drop:</strong> {r.drop}</p>
               <p><strong>Fare:</strong> ₹{r.fare}</p>
