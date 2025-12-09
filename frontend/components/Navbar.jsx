@@ -64,7 +64,7 @@ export default function Navbar() {
           {darkMode ? <MdLightMode size={22} /> : <MdDarkMode size={22} />}
         </button>
 
-        {/* Profile Dropdown */}
+        {/* Profile */}
         <div className="relative">
           <button
             onClick={() => setProfileOpen(!profileOpen)}
