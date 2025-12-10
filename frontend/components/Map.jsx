@@ -13,7 +13,7 @@ import "leaflet/dist/leaflet.css";
    ICONS
 -------------------------------------------------- */
 
-// User icon
+
 const userIcon = L.icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
   iconSize: [40, 40],
