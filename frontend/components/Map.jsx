@@ -9,10 +9,6 @@ import { useState, useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-/* --------------------------------------------------
-   ICONS
--------------------------------------------------- */
-
 
 const userIcon = L.icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
