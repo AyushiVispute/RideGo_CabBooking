@@ -5,14 +5,14 @@ export default function History() {
   const [rides, setRides] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔐 Protect route
+  // Protect route
   useEffect(() => {
     if (!localStorage.getItem("token")) {
       window.location.href = "/login";
     }
   }, []);
 
-  // 📦 Fetch ride history
+  // Fetch ride history
   useEffect(() => {
     apiGet("/rides/user/history")
       .then((res) => setRides(res))
