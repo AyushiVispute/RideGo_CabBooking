@@ -396,7 +396,6 @@ function RidePanel({
         </>
       )}
 
-      {/* ANIMATION */}
       {stage === "animate" && (
         <>
           <h2 className="text-xl font-bold mb-2">Driver is on the way</h2>
