@@ -9,7 +9,7 @@ export default function Book() {
   const [distance, setDistance] = useState("");
   const [duration, setDuration] = useState("");
 
-  // 🔐 Protect route + load localStorage safely
+  // 🔐 Protection
   useEffect(() => {
     if (typeof window !== "undefined") {
       // Route protection
