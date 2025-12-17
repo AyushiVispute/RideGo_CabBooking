@@ -27,10 +27,7 @@ export default function Rating() {
               }`}
               onClick={() => setRating(star)}
             />
-          ))}
-        </div>
-
-        {/* Feedback */}
+          ))
         <textarea
           className="w-full border p-3 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500
                      focus:outline-none focus:ring-2 focus:ring-black"
